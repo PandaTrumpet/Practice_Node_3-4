@@ -9,3 +9,5 @@ export const validateBody = (schema) => {
     }
   };
 };
+
+// Помилка для валідації
