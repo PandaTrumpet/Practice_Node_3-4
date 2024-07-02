@@ -3,6 +3,7 @@ import cors from 'cors';
 import pino from 'pino-http';
 import { env } from './utils/env.js';
 import { productsRouter } from './router/productsRouter.js';
+import { errorHandler } from './middlewares/errorHandler.js';
 export const startServer = () => {
   const app = express();
   app.use(json());
@@ -29,11 +30,7 @@ export const startServer = () => {
     });
   });
 
-  app.use((err, eq, res, next) => {
-    res.status(500).json({
-      message: 'Something went wrong',
-    });
-  });
+  app.use(errorHandler);
   const { PORT } = env;
   app.listen(PORT, () => {
     console.log(`Server is working on port ${PORT}`);
