@@ -52,6 +52,7 @@ export const loginUser = async (req, res, next) => {
       status: 200,
       message: 'Successfuly login',
       data: {
+        refreshToken: session.refreshToken,
         accessToke: session.accessToke,
         user: {
           email: user.email,
