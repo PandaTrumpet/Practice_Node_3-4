@@ -64,3 +64,15 @@ export const loginUser = async (req, res, next) => {
     next(error);
   }
 };
+
+export const sendEmailController = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    const user = await UserCollection.findOne({ email });
+    if (!user) {
+      throw createHttpError(404, 'Email not found');
+    }
+  } catch (error) {
+    next(erro);
+  }
+};
