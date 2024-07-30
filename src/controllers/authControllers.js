@@ -3,6 +3,8 @@ import { UserCollection } from '../db/models/user.js';
 import bcrypt from 'bcrypt';
 import { SessionCollection } from '../db/models/session.js';
 import randomBytes from 'randombytes';
+import { sendEmail } from '../utils/sendMail.js';
+import { env } from '../utils/env-config.js';
 export const registerUser = async (req, res, next) => {
   try {
     const user = await UserCollection.findOne({ email: req.body.email });
@@ -72,7 +74,15 @@ export const sendEmailController = async (req, res, next) => {
     if (!user) {
       throw createHttpError(404, 'Email not found');
     }
+    await sendEmail({
+      from: env.SMTP_USER,
+      to: email,
+      subject: 'To reset password instruction',
+      html: '',
+      text: 'New password is qwe',
+    });
+    res.json('Ok');
   } catch (error) {
-    next(erro);
+    next(error);
   }
 };
