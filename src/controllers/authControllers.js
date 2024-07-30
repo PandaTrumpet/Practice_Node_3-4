@@ -5,6 +5,7 @@ import { SessionCollection } from '../db/models/session.js';
 import randomBytes from 'randombytes';
 import { sendEmail } from '../utils/sendMail.js';
 import { env } from '../utils/env-config.js';
+import jwt from 'jsonwebtoken';
 export const registerUser = async (req, res, next) => {
   try {
     const user = await UserCollection.findOne({ email: req.body.email });
@@ -66,7 +67,7 @@ export const loginUser = async (req, res, next) => {
     next(error);
   }
 };
-
+const secretKey = 'qwe1231321';
 export const sendEmailController = async (req, res, next) => {
   try {
     const { email } = req.body;
@@ -74,14 +75,41 @@ export const sendEmailController = async (req, res, next) => {
     if (!user) {
       throw createHttpError(404, 'Email not found');
     }
+    const token = jwt.sign({ _id: user._id }, secretKey);
     await sendEmail({
       from: env.SMTP_USER,
       to: email,
       subject: 'To reset password instruction',
-      html: '',
-      text: 'New password is qwe',
+      html: `<a href='http://127.0.0.1:5500/index.html?token=${token}'>Click to reset password</a>`,
+      // text: 'New password is qwe',
     });
     res.json('Ok');
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const resetUserPassword = async (req, res, next) => {
+  try {
+    const { password } = req.body;
+    const { authorization = '' } = req.headers;
+    // if (!authorization) {
+    //   throw createHttpError(401, 'Unauthorized');
+    // }
+    const [bearer, token] = authorization.split(' ');
+    if (bearer !== 'Bearer' || !token) {
+      throw createHttpError(403, 'Verbiddden');
+    }
+    const { _id } = jwt.verify(token, secretKey);
+    if (!_id) {
+      throw createHttpError(403, 'Verbiddden');
+    }
+    const encryptedPassword = await bcrypt.hash(password, 10);
+
+    await UserCollection.findByIdAndUpdate(_id, {
+      password: encryptedPassword,
+    });
+    res.status(204);
   } catch (error) {
     next(error);
   }
